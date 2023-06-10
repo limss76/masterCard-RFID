@@ -5,7 +5,7 @@
 #define RST_PIN 9
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-String masterCardID = "9134ae26"; // Ganti dengan ID kartu master yang Anda miliki
+String masterCardID = "1455217438"; // Ganti dengan ID kartu master yang Anda miliki
 
 void setup() {
   Serial.begin(9600);
@@ -32,8 +32,8 @@ void loop() {
 String getCardID() {
   String cardID = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {
-    cardID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
-    cardID.concat(String(mfrc522.uid.uidByte[i], HEX));
+//    cardID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+    cardID.concat(String(mfrc522.uid.uidByte[i], DEC));
   }
   return cardID;
 }

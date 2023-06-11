@@ -1,11 +1,13 @@
 #include <SPI.h>
 #include <MFRC522.h>
+#include <EEPROM.h>
 
 #define SS_PIN 10
 #define RST_PIN 9
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-String masterCardID = "9134ae26"; // Ganti dengan ID kartu master yang Anda miliki
+String masterCardID = "xx xx xx xx"; // Ganti dengan ID kartu master yang Anda miliki
+int addr = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -32,8 +34,11 @@ void loop() {
 String getCardID() {
   String cardID = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {
-    cardID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
-    cardID.concat(String(mfrc522.uid.uidByte[i], HEX));
+//    cardID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+    cardID.concat(String(mfrc522.uid.uidByte[i], DEC));
+    if (i < mfrc522.uid.size - 1) {
+      cardID.concat(" ");
+    }
   }
   return cardID;
 }
@@ -45,7 +50,7 @@ void registerCards() {
     if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
       String cardID = getCardID();
       mfrc522.PICC_HaltA();
-      
+
       if (cardID != masterCardID) {
         if (isCardRegistered(cardID)) {
           removeCard(cardID);
@@ -70,6 +75,27 @@ bool isCardRegistered(String cardID) {
 void registerCard(String cardID) {
   // Implementasikan logika untuk mendaftarkan kartu baru
   // Anda dapat menggunakan EEPROM atau database eksternal untuk menyimpan daftar ID kartu yang terdaftar
+
+  String tempValue = "";
+
+  for (byte i = 0; i < cardID.length(); i++) {
+    char currentCharID = cardID.charAt(i);
+
+    if (currentCharID != ' ') {
+      tempValue += currentCharID;
+    } else {
+      EEPROM.write(addr, tempValue.toInt());
+      addr++;
+      tempValue = "";
+    }
+  }
+
+  if (tempValue != "") {
+    EEPROM.write(addr, tempValue.toInt());
+    addr++;
+  }
+  addr++;
+  EEPROM.write(addr, '\0');
 }
 
 void removeCard(String cardID) {

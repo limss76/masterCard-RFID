@@ -1,11 +1,13 @@
 #include <SPI.h>
 #include <MFRC522.h>
+#include <EEPROM.h>
 
 #define SS_PIN 10
 #define RST_PIN 9
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 String masterCardID = "xx xx xx xx"; // Ganti dengan ID kartu master yang Anda miliki
+int addr = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -73,6 +75,27 @@ bool isCardRegistered(String cardID) {
 void registerCard(String cardID) {
   // Implementasikan logika untuk mendaftarkan kartu baru
   // Anda dapat menggunakan EEPROM atau database eksternal untuk menyimpan daftar ID kartu yang terdaftar
+
+  String tempValue = "";
+
+  for (byte i = 0; i < cardID.length(); i++) {
+    char currentCharID = cardID.charAt(i);
+
+    if (currentCharID != ' ') {
+      tempValue += currentCharID;
+    } else {
+      EEPROM.write(addr, tempValue.toInt());
+      addr++;
+      tempValue = "";
+    }
+  }
+
+  if (tempValue != "") {
+    EEPROM.write(addr, tempValue.toInt());
+    addr++;
+  }
+  addr++;
+  EEPROM.write(addr, '\0');
 }
 
 void removeCard(String cardID) {
